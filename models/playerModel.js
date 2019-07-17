@@ -49,6 +49,34 @@ const playerSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    allNBAFirst: {
+        type: Number,
+        required: true
+    },
+    allNBASecond: {
+        type: Number,
+        required: true
+    },
+    allNBAThird: {
+        type: Number,
+        required: true
+    },
+    mvp: {
+        type: Number,
+        required: true
+    },
+    dpoy: {
+        type: Number,
+        required: true
+    },
+    championships: {
+        type: Number,
+        required: true
+    },
+    finalsMVP: {
+        type: Number,
+        required: true
+    },
     imgURL: {
         type: String,
         required: true

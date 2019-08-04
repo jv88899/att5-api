@@ -77,6 +77,10 @@ const playerSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    score: {
+        type: Number,
+        required: true
+    },
     imgURL: {
         type: String,
         required: true

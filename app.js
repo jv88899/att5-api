@@ -58,18 +58,16 @@ const selectAllTimeStartingFive = players => {
   return allTimeStartingFive
 }
 
-const criteria = {
-  newCriteria: {
-    ppg: 1,
-    per: 1,
-    championships: 1,
-    allNBA: 1,
-    mvp: 1
-  }
+const defaultCriteria = {
+  ppg: 1,
+  per: 1,
+  championships: 1,
+  allNBA: 1,
+  mvp: 1
 }
 
 const calculateScore = (player, criteria) => {
-  const { ppg, per, championships, allNBA, mvp } = criteria.newCriteria
+  const { ppg, per, championships, allNBA, mvp } = criteria
   let tier1 = ( (0.5 * player.reboundsPerGame) + (0.5 * player.stealsPerGame) + (0.5 * player.blocksPerGame) )
   let tier2 = ( (ppg * player.pointsPerGame) + (1.0 * player.assistsPerGame) + (1.0 * player.allNBAThird) )
   let tier3 = ( (per * player.careerPER) + (1.5 * player.allNBASecond) )
@@ -85,13 +83,13 @@ app.get('/api/v3/players/:id', async (req, res) => {
     let players = await Player.find()
 
     players.forEach( player => {
-      let newScore = calculateScore(player, criteria)
+      let newScore = calculateScore(player, defaultCriteria)
       player.score = newScore
-      console.log(`player is ${player.playerFullName} and score is ${player.score}`)
     })
 
     if (req.params.id !== 'all-time') {
       players = players.filter( player => req.params.id === 'All' || player.primaryPosition === req.params.id )
+        .sort( (a, b) => a.score < b.score ? 1 : -1 )
 
       res.status(200).json({
         status: 'success',
@@ -120,24 +118,25 @@ app.get('/api/v3/players/:id', async (req, res) => {
 app.post('/api/v3/players/', async (req, res) => {
   try {
     let players = await Player.find()
-    let criteria = req.body
+    let criteria = await req.body
+    console.log('criteria is', criteria)
 
     players.forEach( player => {
-      let playerScore = calculateScore(player, criteria)
-      player.score = playerScore
+      let newScore = calculateScore(player, criteria)
+      player.score = newScore
     })
 
-    players = players.sort( (a, b) => a.score < b.score ? 1 : -1)
-
-    console.log('players', players)
+    players.sort( (a, b) => a.score < b.score ? 1 : -1 )
 
     res.status(200).json({
-      players
+      data: {
+        criteria,
+        players
+      }
     })
-
   } catch (err) {
-    //
-  }
+    console.log(err)
+  } 
 })
 
 module.exports = app

@@ -118,25 +118,26 @@ app.get('/api/v3/players/:id', async (req, res) => {
 app.post('/api/v3/players/', async (req, res) => {
   try {
     let players = await Player.find()
-    let criteria = await req.body
-    console.log('criteria is', criteria)
+    let criteria = await req.body.criteria
+    let selectedPosition = await req.body.selectedPosition
 
     players.forEach( player => {
       let newScore = calculateScore(player, criteria)
       player.score = newScore
     })
 
-    players.sort( (a, b) => a.score < b.score ? 1 : -1 )
+    players = players.filter( player => selectedPosition === 'all' || selectedPosition === 'All' || selectedPosition === player.primaryPosition )
+      .sort( (a, b) => a.score < b.score ? 1 : -1 )
 
     res.status(200).json({
-      data: {
-        criteria,
-        players
-      }
+      players,
+      criteria,
+      selectedPosition
     })
+
   } catch (err) {
     console.log(err)
-  } 
+  }
 })
 
 module.exports = app

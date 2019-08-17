@@ -8,11 +8,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const selectAllTimeStartingFive = players => {
   let allTimeStartingFive = []
-  let pgPER = 0
-  let sgPER = 0
-  let sfPER = 0
-  let pfPER = 0
-  let cPER = 0
+  let pgScore = 0
+  let sgScore = 0
+  let sfScore = 0
+  let pfScore = 0
+  let cScore = 0
   let topPG = ''
   let topSG = ''
   let topSF = ''
@@ -21,28 +21,28 @@ const selectAllTimeStartingFive = players => {
 
   for (let i = 0; i < players.length; i++) {
     if (players[i].primaryPosition === 'PG') {
-      if (players[i].careerPER > pgPER) {
-        pgPER = players[i].careerPER
+      if (players[i].score > pgScore) {
+        pgScore = players[i].score
         topPG = players[i]
       }
     } else if (players[i].primaryPosition === 'SG') {
-      if (players[i].careerPER > sgPER) {
-        sgPER = players[i].careerPER
+      if (players[i].score > sgScore) {
+        sgScore = players[i].score
         topSG = players[i]
       }
     } else if (players[i].primaryPosition === 'SF') {
-      if (players[i].careerPER > sfPER) {
-        sfPER = players[i].careerPER
+      if (players[i].score > sfScore) {
+        sfScore = players[i].score
         topSF = players[i]
       }
     } else if (players[i].primaryPosition === 'PF') {
-      if (players[i].careerPER > pfPER) {
-        pfPER = players[i].careerPER
+      if (players[i].score > pfScore) {
+        pfScore = players[i].score
         topPF = players[i]
       }
     } else if (players[i].primaryPosition === 'C') {
-      if (players[i].careerPER > cPER) {
-        cPER = players[i].careerPER
+      if (players[i].score > cScore) {
+        cScore = players[i].score
         topC = players[i]
       }
     }
@@ -120,20 +120,30 @@ app.post('/api/v3/players/', async (req, res) => {
     let players = await Player.find()
     let criteria = await req.body.criteria
     let selectedPosition = await req.body.selectedPosition
+    let position = await req.body.position
 
     players.forEach( player => {
       let newScore = calculateScore(player, criteria)
       player.score = newScore
     })
 
-    players = players.filter( player => selectedPosition === 'all' || selectedPosition === 'All' || selectedPosition === player.primaryPosition )
-      .sort( (a, b) => a.score < b.score ? 1 : -1 )
+    if (selectedPosition === 'all-time') {
+      let allPlayers = selectAllTimeStartingFive(players);
+      res.status(200).json({
+        players: allPlayers,
+        criteria,
+        selectedPosition
+      })
+    } else {
+      players = players.filter( player => selectedPosition === 'all' || selectedPosition === 'All' || selectedPosition === player.primaryPosition )
+        .sort( (a, b) => a.score < b.score ? 1 : -1 )
 
-    res.status(200).json({
-      players,
-      criteria,
-      selectedPosition
-    })
+      res.status(200).json({
+        players,
+        criteria,
+        selectedPosition
+      })
+    }
 
   } catch (err) {
     console.log(err)
